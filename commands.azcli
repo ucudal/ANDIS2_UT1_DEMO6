@@ -82,7 +82,15 @@ psql -h localhost -p 5432 -U usersusr -d usersdb -c "SELECT * FROM users;"
 
 curl "http://localhost:8002/users/"
 
+# 2.d Estos comandos son para detener los contenedores antes de pasar a la
+# siguiente parte 3
+docker stop $(docker ps -q)
+
 # 3. Levantar el API Gateway y probarlo
 docker compose up -d
+
+curl "http://localhost:8000/orders/"
+curl "http://localhost:8001/products/"
+curl "http://localhost:8002/users/"
 
 

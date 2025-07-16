@@ -1,16 +1,18 @@
 services:
   api-gateway:
+    build: ./api-gateway
     image: nginx:1.25-alpine
     ports:
       - "80:80"
     volumes:
-      - ./api-gateway/ngixconf/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./api-gateway/ngixconf/ngix.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - users-service
       - products-service
       - orders-service
 
   orders-db:
+    build: ./orders-service
     image: mysql:9.3
     env_file:
       - ./orders-service/.env
@@ -21,7 +23,7 @@ services:
       - ./orders-service/mysqlinit:/docker-entrypoint-initdb.d
 
   orders-service:
-    build: .
+    build: ./orders-service
     env_file:
       - ./orders-service/.env
     environment:
@@ -32,17 +34,18 @@ services:
       - orders-db
 
   products-db:
+    build: ./products-service
     image: mongo:7
     ports:
       - "27017:27017"
     volumes:
-      - ./products-db/mongodbdata:/data/db
-      - ./products-db/mongoinit:/docker-entrypoint-initdb.d
+      - ./products-service/mongodbdata:/data/db
+      - ./products-service/mongoinit:/docker-entrypoint-initdb.d
     env_file:
       - ./products-service/.env
 
   products-service:
-    build: .
+    build: ./products-service
     env_file:
       - ./products-service/.env
     environment:
@@ -53,9 +56,10 @@ services:
       - products-db
 
   users-db:
+    build: ./users-service
     image: postgres:17
     env_file:
-      - ./products-service/.env
+      - ./users-service/.env
     ports:
       - "5432:5432"
     volumes:
@@ -63,7 +67,7 @@ services:
       - ./users-service/pginit:/docker-entrypoint-initdb.d
 
   users-service:
-    build: .
+    build: ./users-service
     env_file:
       - ./users-service/.env
     environment:
