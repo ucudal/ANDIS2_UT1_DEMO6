@@ -1,0 +1,74 @@
+services:
+  api-gateway:
+    image: nginx:1.25-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./api-gateway/ngixconf/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - users-service
+      - products-service
+      - orders-service
+
+  orders-db:
+    image: mysql:9.3
+    env_file:
+      - ./orders-service/.env
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./orders-service/mysqldata:/var/lib/mysql
+      - ./orders-service/mysqlinit:/docker-entrypoint-initdb.d
+
+  orders-service:
+    build: .
+    env_file:
+      - ./orders-service/.env
+    environment:
+      MYSQL_HOST: "orders-db"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - orders-db
+
+  products-db:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./products-db/mongodbdata:/data/db
+      - ./products-db/mongoinit:/docker-entrypoint-initdb.d
+    env_file:
+      - ./products-service/.env
+
+  products-service:
+    build: .
+    env_file:
+      - ./products-service/.env
+    environment:
+      MONGO_HOST: "products-db"
+    ports:
+      - "8001:8000"
+    depends_on:
+      - products-db
+
+  users-db:
+    image: postgres:17
+    env_file:
+      - ./products-service/.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./users-service/pgdata:/var/lib/postgresql/data
+      - ./users-service/pginit:/docker-entrypoint-initdb.d
+
+  users-service:
+    build: .
+    env_file:
+      - ./users-service/.env
+    environment:
+      POSTGRES_HOST: "users-db"
+    ports:
+      - "8002:8000"
+    depends_on:
+      - users-db

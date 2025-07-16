@@ -1,0 +1,21 @@
+# services:
+#   products-db:
+#     image: mongo:7
+#     ports:
+#       - "27017:27017"
+#     volumes:
+#       - ./mongodbdata:/data/db
+#       - ./mongoinit:/docker-entrypoint-initdb.d
+#     env_file:
+#       - .env
+
+#   products-service:
+#     build: .
+#     env_file:
+#       - .env
+#     environment:
+#       MONGO_HOST: "products-db"
+#     ports:
+#       - "8001:8000"
+#     depends_on:
+#       - products-db

@@ -1,0 +1,21 @@
+# services:
+#   orders-db:
+#     image: mysql:9.3
+#     env_file:
+#       - .env
+#     ports:
+#       - "3306:3306"
+#     volumes:
+#       - ./mysqldata:/var/lib/mysql
+#       - ./mysqlinit:/docker-entrypoint-initdb.d
+
+#   orders-service:
+#     build: .
+#     env_file:
+#       - .env
+#     environment:
+#       MYSQL_HOST: "orders-db"
+#     ports:
+#       - "8000:8000"
+#     depends_on:
+#       - orders-db

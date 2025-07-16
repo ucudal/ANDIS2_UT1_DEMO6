@@ -1,0 +1,88 @@
+# 1. Estos comandos son sólo para depurar la aplicación; no es necesario
+#    ejecutarlos si la demo funciona corectamente. Esta demo está configurada
+#    para ser ejecutada desde la raíz de la carpeta del proyecto.
+
+# Crear un entorno virtual y activarlo
+python3 -m venv venv
+source venv/bin/activate
+
+# Instalar dependencias
+pip3 install -r ./orders-service/requirements.txt
+pip3 install -r ./products-service/requirements.txt
+pip3 install -r ./users-service/requirements.txt
+
+# Borra los datos de las bases de datos en caso de que sea necesario; no borres
+# estas carpetas si quieres conservar los datos de una ejecucion anterior.
+rm -rf ./orders-service/mysqldata
+rm -rf ./products-service/mongodbdata
+rm -rf ./users-service/pgdata
+
+# Levanta el contenedor con las bases de datos correspondientes a cada servicio
+docker compose -f ./orders-service/docker-compose.yaml up --build orders-db -d
+docker compose -f ./products-service/docker-compose.yaml up --build products-db -d
+docker compose -f ./users-service/docker-compose.yaml up --build users-db -d
+
+# Asegúrate de que el IDE está usando la versión de Python del entorno virtual
+# creado anteriormente; ejecuta Cmd+Shift+P o Ctrl+Shift+P y selecciona
+# "Python: Select Interpreter" o "Python: Seleccionar Intérprete"; luego elige
+# el intérprete que corresponde a la carpeta `venv` creada anteriormente.
+
+# Iniciar la depuración de uno de los servicios; y luego ejecutar en una nueva
+# terminal el comando correspondiente para probar que el servicio está
+# funcionando y se puede conectar a la base de datos:
+curl "http://localhost:8000/orders/"
+curl "http://localhost:8001/products/"
+curl "http://localhost:8002/users/"
+
+# 2.a. Estos comandos son para ejecutar el servicio de órdenes y probarlo en
+# Docker
+
+# Borra los datos de la base de datos; no borres esta carpeta si quieres
+# conservar los datos de una ejecucion anterior.
+rm -rf ./orders-service/mysqldata
+
+# Levantar los dos servicios: la base de datos y el servicio de órdenes
+docker compose -f ./orders-service/docker-compose.yaml up --build -d
+
+# Prueba la conexión a la base de datos; te va a pedir una contraseña, mira el
+# archivo '.env' en la carpeta 'orders-service' para saber cuál es.
+docker exec -it orders-service-orders-db-1 mysql -u user -p ordersdb -e "SELECT * FROM orders;"
+
+# Probar el servicio. Puedes ver y probar todos los endpoints en
+# http://localhost:8000/docs
+curl "http://localhost:8000/orders/"
+
+# 2.b. Estos comandos son para ejecutar el servicio de productos y probarlo en
+# Docker
+
+# Borra los datos de la base de datos; no borres esta carpeta si quieres
+# conservar los datos de una ejecucion anterior.
+rm -rf ./products-service/mongodbdata
+
+# Levantar los dos servicios: la base de datos y el servicio de productos
+docker compose -f ./products-service/docker-compose.yaml up --build -d
+
+# Probar el servicio. Puedes ver y probar todos los endpoints en
+# http://localhost:8001/docs
+curl "http://localhost:8001/products/"
+
+# 2.c. Estos comandos son para ejecutar el servicio de usuarios y probarlo en
+# Docker
+
+# Borra los datos de la base de datos; no borrar esta carpeta si se quiere
+# conversar los datos de una ejecucion anterior.
+rm -rf ./users-service/pgdata
+
+# Levantar los dos servicios: la base de datos y el servicio de usuarios
+docker compose -f ./users-service/docker-compose.yaml up --build -d
+
+# Probar la conexión a la base de datos; te va a pedir una contraseña, mira el
+# archivo '.env' en la carpeta 'users-service' para saber cuál es.
+psql -h localhost -p 5432 -U usersusr -d usersdb -c "SELECT * FROM users;"
+
+curl "http://localhost:8002/users/"
+
+# 3. Levantar el API Gateway y probarlo
+docker compose up -d
+
+
