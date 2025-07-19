@@ -1,3 +1,7 @@
+# Requerimientos
+# - Docker
+# - Minikube
+
 # 1. Estos comandos son sólo para depurar la aplicación; no es necesario
 #    ejecutarlos si la demo funciona corectamente. Esta demo está configurada
 #    para ser ejecutada desde la raíz de la carpeta del proyecto.
@@ -16,6 +20,9 @@ pip3 install -r ./users-service/requirements.txt
 rm -rf ./orders-service/mysqldata
 rm -rf ./products-service/mongodbdata
 rm -rf ./users-service/pgdata
+
+# Iniciar Docker si no está iniciado
+docker desktop start
 
 # Levanta el contenedor con las bases de datos correspondientes a cada servicio
 docker compose -f ./orders-service/docker-compose.yaml up --build orders-db -d
@@ -41,6 +48,9 @@ curl "http://localhost:8002/users/"
 # conservar los datos de una ejecucion anterior.
 rm -rf ./orders-service/mysqldata
 
+# Iniciar Docker si no está iniciado
+docker desktop start
+
 # Levantar los dos servicios: la base de datos y el servicio de órdenes
 docker compose -f ./orders-service/docker-compose.yaml up --build -d
 
@@ -59,6 +69,9 @@ curl "http://localhost:8000/orders/"
 # conservar los datos de una ejecucion anterior.
 rm -rf ./products-service/mongodbdata
 
+# Iniciar Docker si no está iniciado
+docker desktop start
+
 # Levantar los dos servicios: la base de datos y el servicio de productos
 docker compose -f ./products-service/docker-compose.yaml up --build -d
 
@@ -72,6 +85,9 @@ curl "http://localhost:8001/products/"
 # Borra los datos de la base de datos; no borrar esta carpeta si se quiere
 # conversar los datos de una ejecucion anterior.
 rm -rf ./users-service/pgdata
+
+# Iniciar Docker si no está iniciado
+docker desktop start
 
 # Levantar los dos servicios: la base de datos y el servicio de usuarios
 docker compose -f ./users-service/docker-compose.yaml up --build -d
@@ -92,5 +108,82 @@ docker compose up -d
 curl "http://localhost:8000/orders/"
 curl "http://localhost:8001/products/"
 curl "http://localhost:8002/users/"
+
+# 4. Kubernets
+
+# Levantar las bases de datos en Docker, que no están en el clúster de Kubernets
+docker-compose up -d
+
+docker exec -it andis2_ut1_demo6-orders-db-1 mysql -u user -p ordersdb -e "SELECT * FROM orders;"
+docker exec -it andis2_ut1_demo6-users-db-1 psql -h localhost -p 5432 -U usersusr -d usersdb -c "SELECT * FROM users;"
+docker exec -it andis2_ut1_demo6-products-db-1 mongosh "mongodb://productsusr:Pa55w0rd@localhost:27017/productsdb" --eval "db.products.find().pretty()"
+
+# Iniciar Kubernest
+minikube start
+eval $(minikube -p minikube docker-env)
+
+# Crear las imágenes en caso de que no estuvieran creadas
+docker build -t orders-service:latest ./orders-service
+docker build -t products-service:latest ./products-service
+docker build -t users-service:latest ./users-service
+
+
+# Levantar todos los servicios
+kubectl create configmap nginx-config --from-file=nginx.conf=api-gateway/ngixconf/ngix.conf
+
+kubectl apply -f users-service/users-deployment.yaml
+kubectl apply -f users-service/users-service.yaml
+kubectl apply -f products-service/products-deployment.yaml
+kubectl apply -f products-service/products-service.yaml
+kubectl apply -f orders-service/orders-deployment.yaml
+kubectl apply -f orders-service/orders-service.yaml
+kubectl apply -f api-gateway/api-gateway-deployment.yaml
+kubectl apply -f api-gateway/api-gateway-service.yaml
+
+# Verificar el despliegue
+kubectl get pods
+kubectl get services
+
+# Probar cada uno de los servicios por separado; ejecutar el segundo comadno en
+# otra terminal
+kubectl port-forward service/orders-service 9000:8000
+curl http://localhost:9000/orders/
+
+kubectl port-forward service/products-service 9001:8000
+curl http://localhost:9001/products/
+
+kubectl port-forward service/users-service 9002:8000
+curl http://localhost:9002/users/
+
+# en una terminarl nueva
+
+minikube service api-gateway
+
+
+curl http://localhost:8080/orders
+
+ http://127.0.0.1:55924/orders
+
+
+minikube ip
+
+# Obtener la información del gateway en el clúster; anota el puerto
+kubectl get service api-gateway
+
+# Prueba el acceso a los endpoints
+curl "http://192.168.49.2:30676/orders/"
+
+curl http://192.168.49.2:30676/orders
+
+# Debug
+
+minikube stop
+
+minikube service api-gateway
+
+kubectl describe pod orders-service-6f4567cd89-4r9sc
+
+kubectl delete deployment orders-service products-service users-service api-gateway
+kubectl delete service orders-service products-service users-service api-gateway
 
 

@@ -1,0 +1,36 @@
+# products-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: products-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: products-service
+  template:
+    metadata:
+      labels:
+        app: products-service
+    spec:
+      containers:
+      - name: products-service
+        image: products-service
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: "root"
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: "Pa55w0rd"
+        - name: MONGO_HOST
+          value: "host.docker.internal"
+        - name: MONGO_PORT
+          value: "27017"
+        - name: MONGO_DB
+          value: "productsdb"
+        - name: MONGO_USER
+          value: "productsusr"
+        - name: MONGO_PASSWORD
+          value: "Pa55w0rd"

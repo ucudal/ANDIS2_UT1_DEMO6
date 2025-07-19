@@ -1,18 +1,18 @@
 services:
-  api-gateway:
-    build: ./api-gateway
-    image: nginx:1.25-alpine
-    ports:
-      - "80:80"
-    volumes:
-      - ./api-gateway/ngixconf/ngix.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - users-service
-      - products-service
-      - orders-service
+  # api-gateway:
+  #   build: ./api-gateway
+  #   image: nginx:1.25-alpine
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./api-gateway/ngixconf/ngix.conf:/etc/nginx/nginx.conf:ro
+  #   depends_on:
+  #     - users-service
+  #     - products-service
+  #     - orders-service
 
   orders-db:
-    build: ./orders-service
+    # build: ./orders-service
     image: mysql:9.3
     env_file:
       - ./orders-service/.env
@@ -22,19 +22,20 @@ services:
       - ./orders-service/mysqldata:/var/lib/mysql
       - ./orders-service/mysqlinit:/docker-entrypoint-initdb.d
 
-  orders-service:
-    build: ./orders-service
-    env_file:
-      - ./orders-service/.env
-    environment:
-      MYSQL_HOST: "orders-db"
-    ports:
-      - "8000:8000"
-    depends_on:
-      - orders-db
+  # orders-service:
+  #   build: ./orders-service
+  #   image: orders-service:latest
+  #   env_file:
+  #     - ./orders-service/.env
+  #   environment:
+  #     MYSQL_HOST: "orders-db"
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     - orders-db
 
   products-db:
-    build: ./products-service
+    # build: ./products-service
     image: mongo:7
     ports:
       - "27017:27017"
@@ -44,19 +45,20 @@ services:
     env_file:
       - ./products-service/.env
 
-  products-service:
-    build: ./products-service
-    env_file:
-      - ./products-service/.env
-    environment:
-      MONGO_HOST: "products-db"
-    ports:
-      - "8001:8000"
-    depends_on:
-      - products-db
+  # products-service:
+  #   build: ./products-service
+  #   image: products-service:latest
+  #   env_file:
+  #     - ./products-service/.env
+  #   environment:
+  #     MONGO_HOST: "products-db"
+  #   ports:
+  #     - "8001:8000"
+  #   depends_on:
+  #     - products-db
 
   users-db:
-    build: ./users-service
+    # build: ./users-service
     image: postgres:17
     env_file:
       - ./users-service/.env
@@ -66,13 +68,14 @@ services:
       - ./users-service/pgdata:/var/lib/postgresql/data
       - ./users-service/pginit:/docker-entrypoint-initdb.d
 
-  users-service:
-    build: ./users-service
-    env_file:
-      - ./users-service/.env
-    environment:
-      POSTGRES_HOST: "users-db"
-    ports:
-      - "8002:8000"
-    depends_on:
-      - users-db
+  # users-service:
+  #   build: ./users-service
+  #   image: users-service:latest
+  #   env_file:
+  #     - ./users-service/.env
+  #   environment:
+  #     POSTGRES_HOST: "users-db"
+  #   ports:
+  #     - "8002:8000"
+  #   depends_on:
+  #     - users-db
